@@ -1,0 +1,469 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 4 /Kids [ 5 0 R 7 0 R 9 0 R 11 0 R ] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 2324 >>
+stream
+BT
+/F1 11 Tf
+50 790 Td
+14 TL
+(# Viva Questions and Answers \(ASAP Brainwave Classification\)) Tj
+T*
+() Tj
+T*
+(## A\) Basic Project Understanding) Tj
+T*
+() Tj
+T*
+(1. What is the main objective of this project?) Tj
+T*
+(- To classify emotional state from EEG signals using DREAMER dataset.) Tj
+T*
+(- We implemented both:) Tj
+T*
+(  - 4-class quadrant model \(`Happy`, `Stressed`, `Depressed`, `Calm`\)) Tj
+T*
+(  - Binary models \(`valence` low/high, `arousal` low/high\)) Tj
+T*
+() Tj
+T*
+(2. Why did you choose EEG-based emotion recognition?) Tj
+T*
+(- EEG captures brain activity directly, which can be useful for affective computing.) Tj
+T*
+(- It is a strong ML use-case combining signal processing + deep learning.) Tj
+T*
+() Tj
+T*
+(3. Which dataset did you use and why?) Tj
+T*
+(- DREAMER dataset \(`DREAMER.mat`\).) Tj
+T*
+(- It is a known benchmark in EEG emotion recognition research.) Tj
+T*
+() Tj
+T*
+(4. What are valence and arousal?) Tj
+T*
+(- Valence: pleasantness \(negative to positive\).) Tj
+T*
+(- Arousal: activation level \(calm to excited\).) Tj
+T*
+() Tj
+T*
+(5. How do you map valence-arousal to 4 classes?) Tj
+T*
+(- High Valence + High Arousal -> Happy) Tj
+T*
+(- Low Valence + High Arousal -> Stressed) Tj
+T*
+(- Low Valence + Low Arousal -> Depressed) Tj
+T*
+(- High Valence + Low Arousal -> Calm) Tj
+T*
+() Tj
+T*
+(## B\) Data and Preprocessing) Tj
+T*
+() Tj
+T*
+(6. What is the EEG input shape used in your model?) Tj
+T*
+(- Raw window shape is `\(14 channels, 256 samples\)`.) Tj
+T*
+() Tj
+T*
+(7. Did you do manual preprocessing?) Tj
+T*
+(- No separate manual step is needed for user.) Tj
+T*
+(- Pipeline does preprocessing internally during training/inference.) Tj
+T*
+() Tj
+T*
+(8. Which preprocessing is used for 4-class path?) Tj
+T*
+(- Band Power Spectral Density extraction for theta/alpha/beta/gamma.) Tj
+T*
+(- Baseline removal.) Tj
+T*
+(- Final feature shape `\(14, 4\)`.) Tj
+T*
+() Tj
+T*
+(9. Why baseline correction is important?) Tj
+T*
+(- It reduces subject/session bias and highlights stimulus-driven changes.) Tj
+T*
+() Tj
+T*
+(10. How do you avoid data leakage?) Tj
+T*
+(- Scaler is fit only on training split per fold, then applied to validation data.) Tj
+T*
+() Tj
+T*
+(## C\) Model Architecture) Tj
+T*
+() Tj
+T*
+(11. Which models are implemented?) Tj
+T*
+(- `EEGBiLSTMClassifier` for 4-class quadrant prediction.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 2125 >>
+stream
+BT
+/F1 11 Tf
+50 790 Td
+14 TL
+(- `EEGNet` for binary valence/arousal prediction.) Tj
+T*
+() Tj
+T*
+(12. Why BiLSTM for quadrant model?) Tj
+T*
+(- It can model sequential dependencies in channel-wise feature sequences.) Tj
+T*
+() Tj
+T*
+(13. Why EEGNet for binary tasks?) Tj
+T*
+(- EEGNet is compact and designed for EEG signals, efficient for low-data settings.) Tj
+T*
+() Tj
+T*
+(14. What is confidence score in output?) Tj
+T*
+(- Probability of predicted class from softmax top value.) Tj
+T*
+() Tj
+T*
+(15. How is trial-level prediction done?) Tj
+T*
+(- By aggregating multiple window predictions:) Tj
+T*
+(  - majority vote \(with deterministic tie-break\)) Tj
+T*
+(  - mean probability strategy) Tj
+T*
+() Tj
+T*
+(## D\) Training Strategy) Tj
+T*
+() Tj
+T*
+(16. What split strategies are supported?) Tj
+T*
+(- `cross_trial`, `cross_subject`, `loso`, `group_kfold_subject`.) Tj
+T*
+() Tj
+T*
+(17. Which split is most reliable for realistic performance?) Tj
+T*
+(- Subject-independent splits \(`group_kfold_subject` or `loso`\) are more realistic.) Tj
+T*
+() Tj
+T*
+(18. Why not trust single-fold accuracy?) Tj
+T*
+(- Single fold may be lucky/unlucky; multi-fold mean+std is more reliable.) Tj
+T*
+() Tj
+T*
+(19. Which metrics are reported?) Tj
+T*
+(- Accuracy) Tj
+T*
+(- Balanced Accuracy) Tj
+T*
+(- Macro F1) Tj
+T*
+(- \(with mean/std across folds\)) Tj
+T*
+() Tj
+T*
+(20. Why Balanced Accuracy and Macro F1 are important?) Tj
+T*
+(- EEG classes can be imbalanced; these metrics are fairer than plain accuracy.) Tj
+T*
+() Tj
+T*
+(21. What is early stopping and why used?) Tj
+T*
+(- Stops training when validation score stops improving.) Tj
+T*
+(- Prevents overfitting and saves compute time.) Tj
+T*
+() Tj
+T*
+(22. What optimization methods are used?) Tj
+T*
+(- AdamW optimizer) Tj
+T*
+(- ReduceLROnPlateau scheduler) Tj
+T*
+(- Optional focal loss, class weights, weighted sampling) Tj
+T*
+() Tj
+T*
+(23. What augmentations are used?) Tj
+T*
+(- Gaussian noise, channel dropout, and time masking \(configurable\).) Tj
+T*
+() Tj
+T*
+(24. How is best checkpoint selected?) Tj
+T*
+(- By composite score:) Tj
+T*
+(  - `0.7 * balanced_accuracy + 0.3 * macro_f1`) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 2128 >>
+stream
+BT
+/F1 11 Tf
+50 790 Td
+14 TL
+(## E\) Engineering and Deployment) Tj
+T*
+() Tj
+T*
+(25. How can a normal user run the project easily?) Tj
+T*
+(- Through `run.py` commands:) Tj
+T*
+(  - `python run.py train`) Tj
+T*
+(  - `python run.py streamlit`) Tj
+T*
+(  - `python run.py api`) Tj
+T*
+(  - `python run.py evaluate`) Tj
+T*
+() Tj
+T*
+(26. What does Streamlit dashboard provide?) Tj
+T*
+(- Interactive model selection, payload testing, confidence/probability display.) Tj
+T*
+() Tj
+T*
+(27. What API endpoints are available?) Tj
+T*
+(- `/health`) Tj
+T*
+(- `/predict/features`) Tj
+T*
+(- `/predict/window`) Tj
+T*
+(- `/predict/trial`) Tj
+T*
+(- `/preprocess/demo`) Tj
+T*
+() Tj
+T*
+(28. How did you make project delivery-ready?) Tj
+T*
+(- Clean folder structure, removed cache/artifact clutter, added documentation.) Tj
+T*
+() Tj
+T*
+(29. What files are most important for reviewer?) Tj
+T*
+(- `run.py`, `streamlit_app.py`, `training/train_eegnet_binary.py`, `inference/api.py`, docs.) Tj
+T*
+() Tj
+T*
+(30. How do you ensure reproducibility?) Tj
+T*
+(- Fixed random seed + controlled split protocol + saved reports/checkpoints.) Tj
+T*
+() Tj
+T*
+(## F\) Performance and Limitations) Tj
+T*
+() Tj
+T*
+(31. Is this production-ready clinical system?) Tj
+T*
+(- No. It is a research/demo project for academic use.) Tj
+T*
+() Tj
+T*
+(32. Why accuracy may be moderate in EEG emotion tasks?) Tj
+T*
+(- High inter-subject variability, noisy signals, limited dataset size.) Tj
+T*
+() Tj
+T*
+(33. Is 75% guaranteed?) Tj
+T*
+(- No. It depends on split protocol and training conditions.) Tj
+T*
+() Tj
+T*
+(34. What is a realistic way to present results?) Tj
+T*
+(- Report protocol used, fold-wise mean+std, and limitations honestly.) Tj
+T*
+() Tj
+T*
+(35. What are current limitations?) Tj
+T*
+(- Moderate performance, subject variability, no real EEG device live streaming integration.) Tj
+T*
+() Tj
+T*
+(## G\) Improvement Questions \(Future Work\)) Tj
+T*
+() Tj
+T*
+(36. What improvements can be done next?) Tj
+T*
+(- Better hyperparameter search) Tj
+T*
+(- Subject adaptation/domain generalization) Tj
+T*
+(- Advanced time-frequency features) Tj
+T*
+(- Ensemble or multitask model) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 1674 >>
+stream
+BT
+/F1 11 Tf
+50 790 Td
+14 TL
+(- Better artifact/noise handling) Tj
+T*
+() Tj
+T*
+(37. Can this support live prediction from EEG headset?) Tj
+T*
+(- Yes, with additional device SDK integration and real-time preprocessing pipeline.) Tj
+T*
+() Tj
+T*
+(38. Why camera-based live test is not equivalent here?) Tj
+T*
+(- This model expects EEG signals, not facial/video input.) Tj
+T*
+() Tj
+T*
+(39. How can confidence calibration be improved?) Tj
+T*
+(- Temperature scaling or calibration on validation set.) Tj
+T*
+() Tj
+T*
+(40. How can project be extended for publication-level work?) Tj
+T*
+(- Compare with more baselines, strict LOSO protocol, statistical significance tests.) Tj
+T*
+() Tj
+T*
+(## H\) Short 1-Line Answers \(Rapid Fire\)) Tj
+T*
+() Tj
+T*
+(- Dataset: DREAMER) Tj
+T*
+(- Input channels: 14) Tj
+T*
+(- Window size: 256 samples) Tj
+T*
+(- Binary thresholds: valence/arousal > 3.0) Tj
+T*
+(- Main DL models: BiLSTM + EEGNet) Tj
+T*
+(- Best validation selection: weighted score of balanced accuracy + macro F1) Tj
+T*
+(- Dashboard: Streamlit) Tj
+T*
+(- API framework: FastAPI) Tj
+T*
+(- Purpose: Academic research/demo) Tj
+T*
+() Tj
+T*
+(## I\) Demo Flow for Viva \(Recommended\)) Tj
+T*
+() Tj
+T*
+(1. Explain objective and dataset.) Tj
+T*
+(2. Show project structure quickly.) Tj
+T*
+(3. Run `python run.py train` \(or show existing report\).) Tj
+T*
+(4. Show evaluation metrics JSON.) Tj
+T*
+(5. Run `python run.py streamlit` and test sample payload.) Tj
+T*
+(6. Show `python run.py api` and `/docs` endpoint.) Tj
+T*
+(7. End with limitations + future work.) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(Prepared for: College Viva / Project Defense) Tj
+T*
+(Project: ASAP Brainwave Classification) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 10 0 R >>
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000136 00000 n 
+0000000206 00000 n 
+0000002582 00000 n 
+0000002708 00000 n 
+0000004885 00000 n 
+0000005011 00000 n 
+0000007191 00000 n 
+0000007317 00000 n 
+0000009044 00000 n 
+trailer
+<< /Size 12 /Root 1 0 R >>
+startxref
+9172
+%%EOF
