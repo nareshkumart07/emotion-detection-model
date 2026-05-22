@@ -1,0 +1,22 @@
+# EEG emotion classification project dependencies.
+# Install PyTorch first:
+# CPU Mac/Linux example: pip install torch torchvision
+# If you have NVIDIA GPU, install matching CUDA build from pytorch.org.
+
+numpy>=1.26,<2
+pandas>=2.3
+scipy>=1.10
+scikit-learn>=1.8
+joblib>=1.4
+matplotlib>=3.10
+seaborn>=0.13
+tqdm>=4.66
+
+torch
+torchvision
+torcheeg>=1.1
+
+fastapi>=0.115
+uvicorn[standard]>=0.32
+pydantic>=2.0
+streamlit>=1.36
