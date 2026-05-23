@@ -16,6 +16,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import joblib
 import numpy as np
 import torch
@@ -37,10 +41,6 @@ from torcheeg.model_selection import (
     train_test_split_cross_trial,
 )
 from tqdm.auto import tqdm
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 
 from inference.model_arch import EEGNet
 from inference.torcheeg_patch import apply_lmdb_patch

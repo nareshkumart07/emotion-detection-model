@@ -1,0 +1,43 @@
+{
+  "experiments": [
+    {
+      "name": "gkf_balanced_30e",
+      "task": "both",
+      "split": "group_kfold_subject",
+      "n_splits": 5,
+      "epochs": 30,
+      "batch_size": 64,
+      "preset": "balanced",
+      "output_dir": "artifacts/gkf_balanced_30e"
+    },
+    {
+      "name": "gkf_robust_35e",
+      "task": "both",
+      "split": "group_kfold_subject",
+      "n_splits": 5,
+      "epochs": 35,
+      "batch_size": 64,
+      "preset": "robust",
+      "output_dir": "artifacts/gkf_robust_35e"
+    },
+    {
+      "name": "gkf_aggressive_40e",
+      "task": "both",
+      "split": "group_kfold_subject",
+      "n_splits": 5,
+      "epochs": 40,
+      "batch_size": 64,
+      "preset": "aggressive",
+      "output_dir": "artifacts/gkf_aggressive_40e"
+    },
+    {
+      "name": "cross_subject_robust_35e",
+      "task": "both",
+      "split": "cross_subject",
+      "epochs": 35,
+      "batch_size": 64,
+      "preset": "robust",
+      "output_dir": "artifacts/cross_subject_robust_35e"
+    }
+  ]
+}

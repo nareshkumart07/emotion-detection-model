@@ -1,12 +1,12 @@
-# Train + Streamlit (Simple Guide)
+# Train + Streamlit Guide
 
-## 1) Open correct folder
+## 1) Open the correct folder
 
 ```bash
-cd /Users/fudode/Project/Second.zip_1/ASAP_brainwave_classification
+cd <project-folder>
 ```
 
-If you run from another folder, you will get `No such file or directory` errors.
+If you run commands from another folder, you may get file path errors.
 
 ## 2) Install dependencies
 
@@ -14,23 +14,23 @@ If you run from another folder, you will get `No such file or directory` errors.
 pip install -r requirements.txt
 ```
 
-## 3) Train model (no manual preprocessing needed)
+## 3) Train the model
 
-Default training (recommended):
+Default training:
 
 ```bash
 python run.py train
 ```
 
-What default training does:
+Default training does this:
 - trains `valence` and `arousal`
-- split: `group_kfold_subject` (5-fold)
-- epochs: `30`
-- batch size: `64`
-- preset: `balanced`
-- device: `auto` (GPU if available, else CPU)
+- uses `group_kfold_subject` with 5 folds
+- runs for 30 epochs
+- uses batch size 64
+- uses the `balanced` preset
+- uses `auto` device selection
 
-Fast test run (only 1 fold):
+Fast test run:
 
 ```bash
 python run.py train --max-folds 1 --epochs 1
@@ -42,18 +42,18 @@ Custom training example:
 python run.py train --task valence --preset robust --epochs 25
 ```
 
-## 4) Run Streamlit dashboard
+## 4) Run the Streamlit dashboard
 
 ```bash
 python run.py streamlit
 ```
 
-In dashboard:
-- `Quadrant BiLSTM (4-class)` for final class prediction
-- `Binary EEGNet (2-class)` for valence/arousal binary prediction
-- use `Load Example ...` buttons for quick testing
+In the dashboard:
+- use `Quadrant BiLSTM (4-class)` for final emotion class prediction
+- use `Binary EEGNet (2-class)` for valence/arousal binary prediction
+- use the `Load Example ...` buttons for quick testing
 
-## 5) Run API
+## 5) Run the API
 
 ```bash
 python run.py api
@@ -62,17 +62,33 @@ python run.py api
 API docs:
 - `http://127.0.0.1:8000/docs`
 
-## 6) Evaluate trained pair
+## 6) Evaluate a trained pair
 
 ```bash
 python run.py evaluate
 ```
 
-## 7) Common errors
+For higher scoring potential, evaluate fold ensemble:
+
+```bash
+python run.py evaluate-ensemble --top-k 3 --split cross_subject
+```
+
+## 7) Run multi-experiment search
+
+```bash
+python run.py experiments --plan training/experiments_plan.json --eval-split cross_subject
+```
+
+This produces a ranked report at:
+- `artifacts/experiment_leaderboard.json`
+
+## 8) Common errors
 
 - `DREAMER.mat not found`
-  - Put `DREAMER.mat` in project root folder
-  - or pass: `python run.py train --mat-path /full/path/to/DREAMER.mat`
+  - Put `DREAMER.mat` in the project root folder
+  - or pass `python run.py train --mat-path /full/path/to/DREAMER.mat`
 
 - `can't open file ... training/train_eegnet_binary.py`
-  - You are in wrong folder. Run step 1 first.
+  - You are in the wrong folder
+  - Run step 1 first

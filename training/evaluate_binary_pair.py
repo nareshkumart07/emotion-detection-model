@@ -9,6 +9,10 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import joblib
 import numpy as np
 import torch
@@ -17,10 +21,6 @@ from torch.utils.data import DataLoader, Dataset
 from torcheeg import transforms
 from torcheeg.datasets import DREAMERDataset
 from torcheeg.model_selection import train_test_split_cross_subject, train_test_split_cross_trial
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 
 from inference.model_arch import EEGNet
 from inference.torcheeg_patch import apply_lmdb_patch

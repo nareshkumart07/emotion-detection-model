@@ -1,6 +1,6 @@
 # Brainwave EEG Emotion Classification — Project Report
 
-**Project:** ASAP_brainwave_classification  
+**Project:** Emotion Detection Model  
 **Dataset:** DREAMER (via TorchEEG)  
 **Task:** Four-class valence–arousal quadrant classification from EEG  
 **Status:** End-to-end pipeline complete (training notebook, saved artifacts, CLI + REST API)  
@@ -189,6 +189,27 @@ The classifier is **marginally informative** at the window level under this spli
 
 Early notebook iterations reported ~37% train/val with **random window splits** and without proper baseline correction and scaler discipline. After trial-level splitting and corrected features, metrics dropped slightly on validation but became **methodologically trustworthy**. Higher accuracies reported in some DEAP-based papers often use **binary** labels, **subject-dependent** splits, or **hand-crafted frequency features** with different evaluation protocols—direct numeric comparison requires matching splits and tasks.
 
+### 4.5 Binary classification as an alternative approach
+
+Given the weak performance of 4-class classification (~35% accuracy), the project includes a complementary approach: **binary EEGNet models** for individual **valence** and **arousal** predictions.
+
+#### Motivation
+Binary classification is inherently easier than 4-way classification. By training separate classifiers for valence (low vs. high) and arousal (low vs. high), we can combine them to derive the quadrant label with improved accuracy.
+
+#### Binary Model Results (EEGNet on DREAMER, cross-subject split, test size 20%)
+
+| Task | Accuracy | Balanced Accuracy | Macro F1 |
+|------|----------|-------------------|----------|
+| **Valence** | **59.39%** | 48.94% | 0.4153 |
+| **Arousal** | **64.03%** | 52.90% | 0.5009 |
+| **Quadrant (mapped from binary)** | 34.82% | 24.68% | 0.1869 |
+
+**Observations:**
+- Individual binary tasks achieve **~60% and ~64% accuracy**, a **+20–30 percentage point improvement** over 4-class.
+- However, combining the two binary predictions back to quadrant labels still yields ~35% (same as direct 4-class), suggesting that **quadrant boundaries are coarse** and errors in valence or arousal propagate.
+- Binary models (EEGNet) are simpler and potentially more interpretable for individual dimensions.
+- For practical use cases where only valence or arousal is needed (not quadrant), these binary models are significantly more reliable.
+
 ---
 
 ## 5. System architecture and deployment
@@ -196,7 +217,7 @@ Early notebook iterations reported ~37% train/val with **random window splits** 
 ### 5.1 Repository layout
 
 ```
-ASAP_brainwave_classification/
+project-root/
 ├── EDA.ipynb              # Full experiment (9 sections)
 ├── model.pth              # Trained BiLSTM weights
 ├── scaler.pkl             # StandardScaler (train-fit)
@@ -233,7 +254,7 @@ ASAP_brainwave_classification/
 ### 5.3 Running the API
 
 ```bash
-cd ASAP_brainwave_classification
+cd <project-folder>
 pip install -r requirements.txt
 # Install PyTorch with CUDA if needed (see requirements.txt header)
 uvicorn app:app --reload
@@ -325,7 +346,7 @@ GPU wheels: install PyTorch from the CUDA index noted in `requirements.txt` befo
 
 ## 10. Conclusion
 
-**ASAP_brainwave_classification** delivers a complete, honest pipeline from DREAMER through trial-safe evaluation to deployed inference. The engineering pieces—caching, trial splits, baseline-corrected band power, train-only scaling, BiLSTM training, and FastAPI/CLI serving—work as intended. The **science bottleneck** is classification performance: validation accuracy near **35%** reflects difficult four-way affect mapping from short EEG windows, not a failure to load the model or API.
+This project delivers a complete, honest pipeline from DREAMER through trial-safe evaluation to deployed inference. The engineering pieces—caching, trial splits, baseline-corrected band power, train-only scaling, BiLSTM training, and FastAPI/CLI serving—work as intended. The **science bottleneck** is classification performance: validation accuracy near **35%** reflects difficult four-way affect mapping from short EEG windows, not a failure to load the model or API.
 
 The project is **suitable as a foundation** for coursework, demos, and iterative research. Meaningful accuracy gains will likely come from **simpler targets** (binary labels), **subject-independent evaluation**, and **richer or trial-aggregated features** rather than from deployment plumbing alone.
 

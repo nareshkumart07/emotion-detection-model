@@ -1,196 +1,139 @@
-# Viva Questions and Answers (ASAP Brainwave Classification)
+# Viva Questions and Answers
 
-## A) Basic Project Understanding
+## Project Identity
 
-1. What is the main objective of this project?
-- To classify emotional state from EEG signals using DREAMER dataset.
-- We implemented both:
-  - 4-class quadrant model (`Happy`, `Stressed`, `Depressed`, `Calm`)
-  - Binary models (`valence` low/high, `arousal` low/high)
+1. What is the title of your project?
+- EEG-Based Emotion Recognition Using DREAMER Dataset: A BiLSTM and EEGNet Prototype with API and Dashboard Deployment.
 
-2. Why did you choose EEG-based emotion recognition?
-- EEG captures brain activity directly, which can be useful for affective computing.
-- It is a strong ML use-case combining signal processing + deep learning.
+2. What is the main objective of this project?
+- To build an end-to-end EEG emotion recognition prototype with training, evaluation, API serving, and dashboard demo.
 
-3. Which dataset did you use and why?
-- DREAMER dataset (`DREAMER.mat`).
-- It is a known benchmark in EEG emotion recognition research.
+3. Why did you choose this topic?
+- It combines signal processing, machine learning, and practical deployment in one project.
+- EEG affective computing is a relevant and challenging research area.
 
-4. What are valence and arousal?
-- Valence: pleasantness (negative to positive).
-- Arousal: activation level (calm to excited).
+## Dataset and Labels
 
-5. How do you map valence-arousal to 4 classes?
-- High Valence + High Arousal -> Happy
-- Low Valence + High Arousal -> Stressed
-- Low Valence + Low Arousal -> Depressed
-- High Valence + Low Arousal -> Calm
+4. Which dataset did you use?
+- DREAMER dataset (`DREAMER.mat`) through TorchEEG.
 
-## B) Data and Preprocessing
+5. What are valence and arousal?
+- Valence indicates pleasantness.
+- Arousal indicates activation or intensity.
 
-6. What is the EEG input shape used in your model?
-- Raw window shape is `(14 channels, 256 samples)`.
+6. How are the 4 classes defined?
+- High valence + high arousal: `Happy`
+- Low valence + high arousal: `Stressed`
+- Low valence + low arousal: `Depressed`
+- High valence + low arousal: `Calm`
 
-7. Did you do manual preprocessing?
-- No separate manual step is needed for user.
-- Pipeline does preprocessing internally during training/inference.
+## Input and Preprocessing
 
-8. Which preprocessing is used for 4-class path?
-- Band Power Spectral Density extraction for theta/alpha/beta/gamma.
+7. What is the raw input shape?
+- `(14, 256)` for EEG windows in the binary EEGNet path.
+
+8. What preprocessing is used in the 4-class path?
+- Band power spectral density in theta, alpha, beta, and gamma bands.
 - Baseline removal.
-- Final feature shape `(14, 4)`.
+- Output feature shape `(14, 4)`.
 
-9. Why baseline correction is important?
-- It reduces subject/session bias and highlights stimulus-driven changes.
+9. How did you prevent data leakage?
+- Split protocol is trial-safe.
+- Scaler is fit only on training data and reused on validation/inference.
 
-10. How do you avoid data leakage?
-- Scaler is fit only on training split per fold, then applied to validation data.
+## Model Design
 
-## C) Model Architecture
+10. Which models are used?
+- `EEGBiLSTMClassifier` for 4-class quadrant inference.
+- `EEGNet` for binary valence and arousal classification.
 
-11. Which models are implemented?
-- `EEGBiLSTMClassifier` for 4-class quadrant prediction.
-- `EEGNet` for binary valence/arousal prediction.
+11. Why BiLSTM for the 4-class model?
+- It captures sequential dependencies in channel-wise feature sequences.
 
-12. Why BiLSTM for quadrant model?
-- It can model sequential dependencies in channel-wise feature sequences.
+12. Why EEGNet for binary tasks?
+- It is compact, EEG-oriented, and works well in low-data settings.
 
-13. Why EEGNet for binary tasks?
-- EEGNet is compact and designed for EEG signals, efficient for low-data settings.
+13. How do you get trial-level output from multiple windows?
+- Use majority vote with deterministic tie-break, or mean-probability aggregation.
 
-14. What is confidence score in output?
-- Probability of predicted class from softmax top value.
+## Training and Evaluation
 
-15. How is trial-level prediction done?
-- By aggregating multiple window predictions:
-  - majority vote (with deterministic tie-break)
-  - mean probability strategy
+14. Which split strategies are supported?
+- `cross_trial`, `cross_subject`, `loso`, and `group_kfold_subject`.
 
-## D) Training Strategy
+15. Which metrics do you report?
+- Accuracy, balanced accuracy, and macro F1.
 
-16. What split strategies are supported?
-- `cross_trial`, `cross_subject`, `loso`, `group_kfold_subject`.
+16. Why not rely only on accuracy?
+- Class imbalance can hide poor minority-class performance.
+- Balanced accuracy and macro F1 provide fairer evaluation.
 
-17. Which split is most reliable for realistic performance?
-- Subject-independent splits (`group_kfold_subject` or `loso`) are more realistic.
+17. How do you choose the best checkpoint?
+- Composite validation score:
+- `0.7 * balanced_accuracy + 0.3 * macro_f1`.
 
-18. Why not trust single-fold accuracy?
-- Single fold may be lucky/unlucky; multi-fold mean+std is more reliable.
+18. What optimization strategies are used?
+- AdamW, ReduceLROnPlateau, optional focal loss, class weighting, and weighted sampling.
 
-19. Which metrics are reported?
-- Accuracy
-- Balanced Accuracy
-- Macro F1
-- (with mean/std across folds)
+## Deployment and Demo
 
-20. Why Balanced Accuracy and Macro F1 are important?
-- EEG classes can be imbalanced; these metrics are fairer than plain accuracy.
+19. How can someone run your project quickly?
+- `python run.py train`
+- `python run.py streamlit`
+- `python run.py api`
+- `python run.py evaluate`
 
-21. What is early stopping and why used?
-- Stops training when validation score stops improving.
-- Prevents overfitting and saves compute time.
-
-22. What optimization methods are used?
-- AdamW optimizer
-- ReduceLROnPlateau scheduler
-- Optional focal loss, class weights, weighted sampling
-
-23. What augmentations are used?
-- Gaussian noise, channel dropout, and time masking (configurable).
-
-24. How is best checkpoint selected?
-- By composite score:
-  - `0.7 * balanced_accuracy + 0.3 * macro_f1`
-
-## E) Engineering and Deployment
-
-25. How can a normal user run the project easily?
-- Through `run.py` commands:
-  - `python run.py train`
-  - `python run.py streamlit`
-  - `python run.py api`
-  - `python run.py evaluate`
-
-26. What does Streamlit dashboard provide?
-- Interactive model selection, payload testing, confidence/probability display.
-
-27. What API endpoints are available?
+20. Which API endpoints are important for demo?
 - `/health`
 - `/predict/features`
 - `/predict/window`
 - `/predict/trial`
-- `/preprocess/demo`
 
-28. How did you make project delivery-ready?
-- Clean folder structure, removed cache/artifact clutter, added documentation.
+21. What does the Streamlit app show?
+- Model selection, payload-based testing, prediction confidence, and class probabilities.
 
-29. What files are most important for reviewer?
-- `run.py`, `streamlit_app.py`, `training/train_eegnet_binary.py`, `inference/api.py`, docs.
+## Honest Performance Discussion
 
-30. How do you ensure reproducibility?
-- Fixed random seed + controlled split protocol + saved reports/checkpoints.
+22. Is this production-ready?
+- No, it is a research and coursework prototype.
 
-## F) Performance and Limitations
+23. Why is EEG emotion accuracy often moderate?
+- EEG is noisy, subject variability is high, and labels are coarse.
 
-31. Is this production-ready clinical system?
-- No. It is a research/demo project for academic use.
+24. How should you present current results honestly?
+- The engineering pipeline is complete and reproducible.
+- 4-class accuracy is moderate and indicates room for model and protocol improvement.
 
-32. Why accuracy may be moderate in EEG emotion tasks?
-- High inter-subject variability, noisy signals, limited dataset size.
+## Future Work
 
-33. Is 75% guaranteed?
-- No. It depends on split protocol and training conditions.
+25. What are your next technical improvements?
+- Run LOSO-first benchmarking with confidence intervals.
+- Improve minority-class recall through focal-loss and calibration tuning.
+- Add richer time-frequency features and artifact rejection.
+- Explore subject adaptation and domain generalization.
+- Compare with additional baselines and statistical significance tests.
 
-34. What is a realistic way to present results?
-- Report protocol used, fold-wise mean+std, and limitations honestly.
+26. How can this become closer to real-time usage?
+- Integrate EEG device SDK input stream.
+- Add low-latency preprocessing and prediction buffering.
+- Benchmark end-to-end latency and robustness on continuous sessions.
 
-35. What are current limitations?
-- Moderate performance, subject variability, no real EEG device live streaming integration.
-
-## G) Improvement Questions (Future Work)
-
-36. What improvements can be done next?
-- Better hyperparameter search
-- Subject adaptation/domain generalization
-- Advanced time-frequency features
-- Ensemble or multitask model
-- Better artifact/noise handling
-
-37. Can this support live prediction from EEG headset?
-- Yes, with additional device SDK integration and real-time preprocessing pipeline.
-
-38. Why camera-based live test is not equivalent here?
-- This model expects EEG signals, not facial/video input.
-
-39. How can confidence calibration be improved?
-- Temperature scaling or calibration on validation set.
-
-40. How can project be extended for publication-level work?
-- Compare with more baselines, strict LOSO protocol, statistical significance tests.
-
-## H) Short 1-Line Answers (Rapid Fire)
+## Rapid Fire
 
 - Dataset: DREAMER
-- Input channels: 14
+- Channels: 14
 - Window size: 256 samples
-- Binary thresholds: valence/arousal > 3.0
-- Main DL models: BiLSTM + EEGNet
-- Best validation selection: weighted score of balanced accuracy + macro F1
-- Dashboard: Streamlit
+- Binary threshold: valence/arousal > 3.0
+- 4-class model: BiLSTM
+- Binary model: EEGNet
 - API framework: FastAPI
-- Purpose: Academic research/demo
+- Dashboard: Streamlit
+- Scope: Academic prototype
 
-## I) Demo Flow for Viva (Recommended)
+## Suggested Viva Flow
 
-1. Explain objective and dataset.
-2. Show project structure quickly.
-3. Run `python run.py train` (or show existing report).
-4. Show evaluation metrics JSON.
-5. Run `python run.py streamlit` and test sample payload.
-6. Show `python run.py api` and `/docs` endpoint.
-7. End with limitations + future work.
-
----
-
-Prepared for: College Viva / Project Defense
-Project: ASAP Brainwave Classification
+1. State the problem and motivation.
+2. Explain dataset, labels, and leakage-safe protocol.
+3. Present model design and training metrics.
+4. Demonstrate Streamlit and API endpoints.
+5. Close with limitations and future work.

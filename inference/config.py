@@ -1,6 +1,6 @@
 from pathlib import Path
 
-# Project root (ASAP_brainwave_classification/)
+# Project root directory
 ROOT = Path(__file__).resolve().parent.parent
 
 SAMPLING_RATE = 128

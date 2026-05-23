@@ -93,6 +93,48 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     return _run(cmd)
 
 
+def cmd_evaluate_ensemble(args: argparse.Namespace) -> int:
+    cmd = [
+        sys.executable,
+        str(ROOT / 'training' / 'evaluate_binary_pair_ensemble.py'),
+        '--valence-report',
+        args.valence_report,
+        '--arousal-report',
+        args.arousal_report,
+        '--top-k',
+        str(args.top_k),
+        '--metric',
+        args.metric,
+        '--split',
+        args.split,
+        '--device',
+        args.device,
+        '--mat-path',
+        args.mat_path,
+    ]
+    return _run(cmd)
+
+
+def cmd_experiments(args: argparse.Namespace) -> int:
+    cmd = [
+        sys.executable,
+        str(ROOT / 'training' / 'run_binary_experiments.py'),
+        '--plan',
+        args.plan,
+        '--mat-path',
+        args.mat_path,
+        '--device',
+        args.device,
+        '--eval-split',
+        args.eval_split,
+        '--ensemble-top-k',
+        str(args.ensemble_top_k),
+        '--report-out',
+        args.report_out,
+    ]
+    return _run(cmd)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description='One-command launcher for training and demo.'
@@ -136,6 +178,49 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
     p_eval.add_argument('--mat-path', default='DREAMER.mat')
     p_eval.set_defaults(func=cmd_evaluate)
+
+    p_eval_ens = sub.add_parser(
+        'evaluate-ensemble',
+        help='Evaluate ensemble of folds for valence+arousal',
+    )
+    p_eval_ens.add_argument(
+        '--valence-report',
+        default='artifacts_cv5/valence_group_kfold_subject_report.json',
+    )
+    p_eval_ens.add_argument(
+        '--arousal-report',
+        default='artifacts_cv5/arousal_group_kfold_subject_report.json',
+    )
+    p_eval_ens.add_argument('--top-k', type=int, default=3)
+    p_eval_ens.add_argument(
+        '--metric',
+        choices=['balanced_accuracy', 'accuracy', 'macro_f1'],
+        default='balanced_accuracy',
+    )
+    p_eval_ens.add_argument(
+        '--split',
+        choices=['cross_subject', 'cross_trial'],
+        default='cross_subject',
+    )
+    p_eval_ens.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
+    p_eval_ens.add_argument('--mat-path', default='DREAMER.mat')
+    p_eval_ens.set_defaults(func=cmd_evaluate_ensemble)
+
+    p_exp = sub.add_parser(
+        'experiments',
+        help='Run multiple train/evaluate experiments from a JSON plan',
+    )
+    p_exp.add_argument('--plan', default='training/experiments_plan.json')
+    p_exp.add_argument('--mat-path', default='DREAMER.mat')
+    p_exp.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
+    p_exp.add_argument(
+        '--eval-split',
+        choices=['cross_subject', 'cross_trial'],
+        default='cross_subject',
+    )
+    p_exp.add_argument('--ensemble-top-k', type=int, default=3)
+    p_exp.add_argument('--report-out', default='artifacts/experiment_leaderboard.json')
+    p_exp.set_defaults(func=cmd_experiments)
 
     return parser
 
