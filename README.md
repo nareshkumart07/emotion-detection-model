@@ -1,3 +1,24 @@
+<!-- doc:hero -->
+<div align="center">
+
+<h1>Emotion Detection Model</h1>
+
+<p><strong>Emotion Detection Model</strong> • <em>Project Documentation</em></p>
+
+<p>
+  <code>DREAMER</code>
+  &nbsp;•&nbsp;
+  <code>EEG</code>
+  &nbsp;•&nbsp;
+  <code>BiLSTM</code>
+  &nbsp;•&nbsp;
+  <code>EEGNet</code>
+</p>
+
+</div>
+
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
