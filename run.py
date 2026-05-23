@@ -7,6 +7,7 @@ Examples:
   python run.py streamlit
   python run.py api
   python run.py evaluate
+  python run.py evaluate-trial
 """
 
 from __future__ import annotations
@@ -90,6 +91,38 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         '--mat-path',
         args.mat_path,
     ]
+    return _run(cmd)
+
+
+def cmd_evaluate_trial(args: argparse.Namespace) -> int:
+    cmd = [
+        sys.executable,
+        str(ROOT / 'training' / 'evaluate_binary_pair_trial.py'),
+        '--valence-model',
+        args.valence_model,
+        '--arousal-model',
+        args.arousal_model,
+        '--split',
+        args.split,
+        '--aggregation',
+        args.aggregation,
+        '--device',
+        args.device,
+        '--mat-path',
+        args.mat_path,
+        '--batch-size',
+        str(args.batch_size),
+        '--seed',
+        str(args.seed),
+    ]
+    if args.scaler:
+        cmd.extend(['--scaler', args.scaler])
+    if args.valence_scaler:
+        cmd.extend(['--valence-scaler', args.valence_scaler])
+    if args.arousal_scaler:
+        cmd.extend(['--arousal-scaler', args.arousal_scaler])
+    if args.report_out:
+        cmd.extend(['--report-out', args.report_out])
     return _run(cmd)
 
 
@@ -178,6 +211,40 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
     p_eval.add_argument('--mat-path', default='DREAMER.mat')
     p_eval.set_defaults(func=cmd_evaluate)
+
+    p_eval_trial = sub.add_parser(
+        'evaluate-trial',
+        help='Evaluate model pair at window and trial levels (vote/mean_prob)',
+    )
+    p_eval_trial.add_argument('--valence-model', required=True)
+    p_eval_trial.add_argument('--arousal-model', required=True)
+    p_eval_trial.add_argument(
+        '--scaler',
+        default=None,
+        help='Single scaler used for both tasks (optional).',
+    )
+    p_eval_trial.add_argument(
+        '--valence-scaler',
+        default=None,
+        help='Valence-specific scaler (optional if --scaler is used).',
+    )
+    p_eval_trial.add_argument(
+        '--arousal-scaler',
+        default=None,
+        help='Arousal-specific scaler (optional if --scaler is used).',
+    )
+    p_eval_trial.add_argument(
+        '--aggregation',
+        choices=['vote', 'mean_prob'],
+        default='mean_prob',
+    )
+    p_eval_trial.add_argument('--split', choices=['cross_subject', 'cross_trial'], default='cross_trial')
+    p_eval_trial.add_argument('--seed', type=int, default=42)
+    p_eval_trial.add_argument('--batch-size', type=int, default=128)
+    p_eval_trial.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
+    p_eval_trial.add_argument('--mat-path', default='DREAMER.mat')
+    p_eval_trial.add_argument('--report-out', default=None)
+    p_eval_trial.set_defaults(func=cmd_evaluate_trial)
 
     p_eval_ens = sub.add_parser(
         'evaluate-ensemble',
