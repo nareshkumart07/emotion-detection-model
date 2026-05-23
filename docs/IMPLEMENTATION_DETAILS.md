@@ -339,9 +339,10 @@ These can be generated again during local training runs.
 
 For reviewer/client demo sequence:
 
-1. `python run.py train`
-2. `python run.py evaluate`
-3. `python run.py streamlit`
-4. `python run.py api` and open `/docs`
+1. `python3 run.py train`
+2. `python3 run.py evaluate`
+3. `python3 run.py evaluate-trial` (optional trial-level aggregation metrics)
+4. `python3 run.py streamlit`
+5. `python3 run.py api` and open `/docs`
 
 This sequence demonstrates training, metrics, interactive prediction, and deployable API.

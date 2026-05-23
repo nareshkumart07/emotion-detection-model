@@ -5,18 +5,19 @@
 - `run.py`
   - easiest launcher for the main workflows
   - commands:
-    - `python run.py train`
-    - `python run.py streamlit`
-    - `python run.py api`
-    - `python run.py evaluate`
+    - `python3 run.py train`
+    - `python3 run.py streamlit`
+    - `python3 run.py api`
+    - `python3 run.py evaluate`
+    - `python3 run.py evaluate-trial`
 
 - `streamlit_app.py`
   - Streamlit dashboard for manual testing and demo
-  - usually run through `python run.py streamlit`
+  - usually run through `python3 run.py streamlit`
 
 - `app.py`
   - FastAPI entrypoint for the REST API
-  - usually run through `python run.py api`
+  - usually run through `python3 run.py api`
 
 - `predict.py`
   - CLI entrypoint for direct prediction from files
@@ -30,6 +31,13 @@
 
 - `training/evaluate_binary_pair.py`
   - evaluates valence + arousal checkpoints together
+
+- `training/evaluate_binary_pair_trial.py`
+  - evaluates both window-level and trial-level performance
+  - supports trial aggregation with `vote` and `mean_prob`
+
+- `training/fast_accuracy_sweep.sh`
+  - multi-seed accuracy sweep + top-k auto selection + ensemble evaluation
 
 - `training/select_best_checkpoint.py`
   - selects the best fold checkpoint from a report JSON

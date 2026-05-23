@@ -196,17 +196,20 @@ Given the weak performance of 4-class classification (~35% accuracy), the projec
 #### Motivation
 Binary classification is inherently easier than 4-way classification. By training separate classifiers for valence (low vs. high) and arousal (low vs. high), we can combine them to derive the quadrant label with improved accuracy.
 
-#### Binary Model Results (EEGNet on DREAMER, cross-subject split, test size 20%)
+#### Binary Model Results (EEGNet on DREAMER, seed-999 cross-trial run)
 
 | Task | Accuracy | Balanced Accuracy | Macro F1 |
 |------|----------|-------------------|----------|
-| **Valence** | **59.39%** | 48.94% | 0.4153 |
-| **Arousal** | **64.03%** | 52.90% | 0.5009 |
-| **Quadrant (mapped from binary)** | 34.82% | 24.68% | 0.1869 |
+| **Valence (window-level)** | **68.61%** | 53.38% | 0.5345 |
+| **Arousal (window-level)** | **57.17%** | 58.38% | 0.5534 |
+| **Valence (trial-level, vote)** | **75.00%** | - | - |
+| **Arousal (trial-level, vote)** | **61.96%** | - | - |
+| **Quadrant (trial-level, mapped from binary)** | 44.57% | - | - |
 
 **Observations:**
-- Individual binary tasks achieve **~60% and ~64% accuracy**, a **+20–30 percentage point improvement** over 4-class.
-- However, combining the two binary predictions back to quadrant labels still yields ~35% (same as direct 4-class), suggesting that **quadrant boundaries are coarse** and errors in valence or arousal propagate.
+- Binary tasks are clearly stronger than 4-class for single-dimension targets.
+- Trial-level aggregation improves stability and pushes valence to 75.00%.
+- Quadrant accuracy remains much lower than binary task accuracy, suggesting that **quadrant boundaries are coarse** and errors in valence/arousal still propagate.
 - Binary models (EEGNet) are simpler and potentially more interpretable for individual dimensions.
 - For practical use cases where only valence or arousal is needed (not quadrant), these binary models are significantly more reliable.
 
