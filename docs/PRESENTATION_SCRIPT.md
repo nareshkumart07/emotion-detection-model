@@ -52,8 +52,8 @@ Initially, our 4-class model achieved only ~35% accuracy. So we explored **binar
 
 | Model | Task | Accuracy |
 |-------|------|----------|
-| **Valence EEGNet** | High (>3.0) vs Low (≤3.0) | **68.61%** *(seed 999, window-level)* |
-| **Arousal EEGNet** | High (>3.0) vs Low (≤3.0) | **57.17%** *(seed 999, window-level)* |
+| **Valence EEGNet** | High (>3.0) vs Low (≤3.0) | **59.39%** |
+| **Arousal EEGNet** | High (>3.0) vs Low (≤3.0) | **64.03%** |
 
 **Combining Binary Predictions into Quadrants:**
 ```
@@ -63,12 +63,12 @@ If Valence=LOW  + Arousal=LOW   → Depressed 😔
 If Valence=HIGH + Arousal=LOW   → Calm 😌
 ```
 
-**Key Insight:** Even after binary decomposition, quadrant accuracy stays much lower (about 44.57% at trial-level) than single-dimension binary scores. This tells us the bottleneck is **task difficulty and label granularity**, not simply model architecture.
+**Key Insight:** When combined back to quadrants, we still get ~35% accuracy. This tells us the bottleneck is **not the model architecture**, but the **task difficulty**. The DREAMER quadrant boundaries are inherently noisy in raw EEG.
 
 **Practical Value:**
-- If your application only needs **valence** → trial-level `vote` reaches **75.00%**
-- If your application only needs **arousal** → trial-level is about **61.96%**
-- For full 4-quadrant emotion, performance remains limited (about 44.57% trial-level in our setup).
+- If your application only needs **arousal** (excited vs calm) → use binary arousal model: **64% accuracy**
+- If your application only needs **valence** (pleasant vs unpleasant) → use binary valence model: **59% accuracy**
+- For full 4-quadrant emotion, both approaches (~35%) are limited by the dataset.
 
 ## Slide 6: Training and Evaluation
 
@@ -79,18 +79,13 @@ We support cross-trial, cross-subject, LOSO, and group-k-fold by subject. We rep
 
 Balanced metrics are important because EEG class distributions are not perfectly balanced.
 
-Seed-999 metrics used in this presentation:
-- Window-level: valence 68.61%, arousal 57.17%
-- Trial-level (`vote`): valence 75.00%, arousal 61.96%, quadrant 44.57%
-
 ## Slide 7: Deployment
 
 We provide:
-- `python3 run.py train`
-- `python3 run.py evaluate`
-- `python3 run.py evaluate-trial`
-- `python3 run.py streamlit`
-- `python3 run.py api`
+- `python run.py train`
+- `python run.py evaluate`
+- `python run.py streamlit`
+- `python run.py api`
 
 API endpoints include `/health`, `/predict/features`, `/predict/window`, and `/predict/trial`.
 
@@ -107,7 +102,7 @@ This demonstrates both usability and engineering completeness.
 
 Current 4-class performance is moderate (~35%). This is expected in EEG emotion recognition due to subject variability, signal noise, and coarse label boundaries.
 
-However, our **binary models reach 68.61%/57.17% window-level and 75.00%/61.96% trial-level**, showing that:
+However, our **binary models achieve 59-64%** accuracy, showing that:
 1. The model architecture is sound.
 2. The limitation is the task difficulty, not model capacity.
 3. For single-dimension tasks (valence or arousal only), we have strong models.

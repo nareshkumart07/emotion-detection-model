@@ -62,11 +62,9 @@
 - Our initial 4-class model achieved only ~35% accuracy. We wanted to understand if this was due to poor model design or task difficulty. By training binary models for valence and arousal separately, we could isolate the bottleneck.
 
 15. What are the accuracy improvements with binary classification?
-- **Valence binary model (seed 999, cross_trial):** 68.61% accuracy (window-level)
-- **Arousal binary model (seed 999, cross_trial):** 57.17% accuracy (window-level)
-- **Trial-level aggregation (`vote`):** valence 75.00%, arousal 61.96%
-- **Quadrant from binary (trial-level):** 44.57%
-- Quadrant remains much lower than binary tasks (44.57% trial-level), showing the bottleneck is **task difficulty**, not model capacity.
+- **Valence binary model:** 59.39% accuracy (vs 35% for 4-class)
+- **Arousal binary model:** 64.03% accuracy (vs 35% for 4-class)
+- When combined back to quadrants: still ~35%, showing the bottleneck is **task difficulty**, not model capacity.
 
 16. How do you combine binary predictions into a quadrant label?
 ```python
@@ -81,9 +79,9 @@ def quadrant_from_binary(high_valence: bool, high_arousal: bool) -> int:
 ```
 We use simple boolean logic: combine the two binary predictions into the 4 possible quadrants.
 
-17. What is the practical value of binary models if combined quadrant accuracy is still much lower than binary?
-- If an application only needs **valence**: use trial-level `vote` for **75.00% accuracy**.
-- If an application only needs **arousal**: trial-level performance is **61.96%**.
+17. What is the practical value of binary models if combined accuracy is still ~35%?
+- If an application only needs **arousal** (excited vs calm): use binary arousal model for **64% accuracy**.
+- If an application only needs **valence** (pleasant vs unpleasant): use binary valence model for **59% accuracy**.
 - For full 4-quadrant emotion, both approaches are limited by inherent dataset difficulty.
 
 18. What does the binary analysis tell us about the 4-class bottleneck?
@@ -113,11 +111,10 @@ We use simple boolean logic: combine the two binary predictions into the 4 possi
 ## Deployment and Demo
 
 24. How can someone run your project quickly?
-- `python3 run.py train`
-- `python3 run.py streamlit`
-- `python3 run.py api`
-- `python3 run.py evaluate`
-- `python3 run.py evaluate-trial`
+- `python run.py train`
+- `python run.py streamlit`
+- `python run.py api`
+- `python run.py evaluate`
 
 25. Which API endpoints are important for demo?
 - `/health`
@@ -139,10 +136,7 @@ We use simple boolean logic: combine the two binary predictions into the 4 possi
 29. How should you present current results honestly?
 - The engineering pipeline is complete and reproducible.
 - 4-class accuracy is moderate and indicates room for model and protocol improvement.
-- Binary seed-999 results are:
-- window-level: valence 68.61%, arousal 57.17%
-- trial-level (`vote`): valence 75.00%, arousal 61.96%, quadrant 44.57%
-- These show the bottleneck is task difficulty, not model quality.
+- Binary models (59-64%) show the bottleneck is task difficulty, not model quality.
 
 ## Future Work
 
@@ -165,8 +159,7 @@ We use simple boolean logic: combine the two binary predictions into the 4 possi
 - Window size: 256 samples
 - Binary threshold: valence/arousal > 3.0
 - 4-class model: BiLSTM
-- Binary models: EEGNet (seed 999 window-level: valence 68.61%, arousal 57.17%)
-- Trial-level (`vote`): valence 75.00%, arousal 61.96%
+- Binary models: EEGNet (valence: 59%, arousal: 64%)
 - API framework: FastAPI
 - Dashboard: Streamlit
 - Scope: Academic prototype
@@ -176,7 +169,7 @@ We use simple boolean logic: combine the two binary predictions into the 4 possi
 1. State the problem and motivation.
 2. Explain dataset, labels, and leakage-safe protocol.
 3. Present 4-class model design and initial metrics (~35%).
-4. Explain why you built binary models and show seed-999 + trial-level results.
+4. Explain why you built binary models and show the accuracy improvements (59-64%).
 5. Discuss what binary analysis reveals: **model is sound, task is hard**.
 6. Demonstrate Streamlit and API endpoints.
 7. Close with limitations and future work.
