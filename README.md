@@ -36,49 +36,61 @@ cd <project-folder>
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Train model (requires `DREAMER.mat` in the project root or `--mat-path`):
 
 ```bash
-python3 run.py train
+python run.py train
+```
+
+Train notebook-equivalent 4-class quadrant BiLSTM (saves `model.pth`, `scaler.pkl`, metrics, and confusion matrix plot):
+
+```bash
+python run.py train-quadrant
 ```
 
 Run Streamlit dashboard with the bundled pretrained models:
 
 ```bash
-python3 run.py streamlit
+python run.py streamlit
 ```
 
 Run API server:
 
 ```bash
-python3 run.py api
+python run.py api
 ```
 
 Evaluate the valence + arousal model pair:
 
 ```bash
-python3 run.py evaluate
+python run.py evaluate
 ```
 
-Evaluate with trial-level aggregation (`vote` or `mean_prob`):
+Save evaluation report (now includes confusion matrices):
 
 ```bash
-python3 run.py evaluate-trial --help
+python run.py evaluate --report-out artifacts/eval_binary_pair.json
 ```
 
 Evaluate fold-ensemble performance (recommended for stronger results):
 
 ```bash
-python3 run.py evaluate-ensemble --top-k 3 --split cross_subject
+python run.py evaluate-ensemble --top-k 3 --split cross_subject
+```
+
+Save ensemble evaluation report (includes confusion matrices):
+
+```bash
+python run.py evaluate-ensemble --top-k 3 --split cross_subject --report-out artifacts/eval_binary_ensemble.json
 ```
 
 Run multi-configuration search:
 
 ```bash
-python3 run.py experiments --plan training/experiments_plan.json --eval-split cross_subject
+python run.py experiments --plan training/experiments_plan.json --eval-split cross_subject
 ```
 
 ## Model Performance Summary
@@ -91,12 +103,9 @@ python3 run.py experiments --plan training/experiments_plan.json --eval-split cr
 
 ### Binary Classification (EEGNet)
 Due to the challenge of 4-class classification, we also trained separate binary models for **valence** and **arousal** emotions:
-- **Window-level (seed 999, cross-trial):**
-- Valence: **68.61%** (balanced accuracy 53.38%, macro F1 0.5345)
-- Arousal: **57.17%** (balanced accuracy 58.38%, macro F1 0.5534)
-- **Trial-level (same model pair):**
-- `mean_prob`: valence 72.83%, arousal 61.96%, quadrant 44.57%
-- `vote`: valence **75.00%**, arousal **61.96%**, quadrant **44.57%**
+- **Valence binary accuracy: ~59.4%**
+- **Arousal binary accuracy: ~64.0%**
+- *Note: Binary tasks are significantly easier than 4-way classification.*
 
 ## Important Notes
 
