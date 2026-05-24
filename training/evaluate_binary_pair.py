@@ -16,7 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import joblib
 import numpy as np
 import torch
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, confusion_matrix, f1_score
 from torch.utils.data import DataLoader, Dataset
 from torcheeg import transforms
 from torcheeg.datasets import DREAMERDataset
@@ -95,6 +95,17 @@ def metric_dict(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     }
 
 
+def confusion_payload(
+    y_true: np.ndarray, y_pred: np.ndarray, labels: List[int]
+) -> Dict[str, List[List[float]]]:
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    cm_norm = cm.astype(np.float64) / np.maximum(cm.sum(axis=1, keepdims=True), 1.0)
+    return {
+        'counts': cm.astype(int).tolist(),
+        'row_normalized': cm_norm.tolist(),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument('--valence-model', type=Path, required=True)
@@ -106,6 +117,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument('--test-size', type=float, default=0.2)
     p.add_argument('--seed', type=int, default=42)
     p.add_argument('--device', default='auto', choices=['auto', 'cpu', 'cuda'])
+    p.add_argument('--report-out', type=Path, default=None)
     return p.parse_args()
 
 
@@ -179,13 +191,33 @@ def main() -> int:
             yq_t.extend(yq_np.tolist())
             yq_p.extend(pq.tolist())
 
+    yv_true = np.asarray(yv_t)
+    yv_pred = np.asarray(yv_p)
+    ya_true = np.asarray(ya_t)
+    ya_pred = np.asarray(ya_p)
+    yq_true = np.asarray(yq_t)
+    yq_pred = np.asarray(yq_p)
+
     report = {
-        'valence': metric_dict(np.asarray(yv_t), np.asarray(yv_p)),
-        'arousal': metric_dict(np.asarray(ya_t), np.asarray(ya_p)),
-        'quadrant_from_binary': metric_dict(np.asarray(yq_t), np.asarray(yq_p)),
+        'valence': metric_dict(yv_true, yv_pred),
+        'arousal': metric_dict(ya_true, ya_pred),
+        'quadrant_from_binary': metric_dict(yq_true, yq_pred),
+        'confusion_matrices': {
+            'valence': confusion_payload(yv_true, yv_pred, labels=[0, 1]),
+            'arousal': confusion_payload(ya_true, ya_pred, labels=[0, 1]),
+            'quadrant_from_binary': confusion_payload(
+                yq_true, yq_pred, labels=[0, 1, 2, 3]
+            ),
+        },
         'quadrant_labels': QUADRANT_NAMES,
         'samples': len(yq_t),
     }
+
+    if args.report_out is not None:
+        args.report_out.parent.mkdir(parents=True, exist_ok=True)
+        with args.report_out.open('w', encoding='utf-8') as f:
+            json.dump(report, f, indent=2)
+        print(f'Wrote report: {args.report_out}')
     print(json.dumps(report, indent=2))
     return 0
 
