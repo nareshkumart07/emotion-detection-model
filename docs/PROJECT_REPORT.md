@@ -3,7 +3,7 @@
 **Project:** Emotion Detection Model  
 **Dataset:** DREAMER (via TorchEEG)  
 **Task:** Four-class valence–arousal quadrant classification from EEG  
-**Status:** End-to-end pipeline complete (training notebook, saved artifacts, CLI + REST API)  
+**Status:** End-to-end pipeline complete (training scripts, saved artifacts, CLI + REST API)  
 **Report date:** May 2026
 
 ---
@@ -14,7 +14,7 @@ This project builds a research prototype that maps 14-channel EEG to one of four
 
 After fixing methodological issues (trial-level leakage from random window splits, missing baseline correction, and train-only normalization), the system trains and deploys reliably. **Validation accuracy is ~35%** on a held-out 20% of trials—modestly above the majority-class baseline (~33% Depressed) but well below ceiling for a four-way task. Train and validation accuracy are close (~42% vs ~35%), indicating **limited overfitting** and **weak discriminative signal** in the current feature/model setup rather than a broken pipeline.
 
-Deliverables include `EDA.ipynb`, `model.pth`, `scaler.pkl`, a packaged `inference/` module, CLI (`predict.py`), and FastAPI (`app.py` → `/docs`).
+Deliverables include the scripted EDA/training pipeline (`training/eda_bilstm_quadrant.py`), `model.pth`, `scaler.pkl`, a packaged `inference/` module, CLI (`predict.py`), and FastAPI (`app.py` -> `/docs`).
 
 ---
 
@@ -39,7 +39,7 @@ Scores are on a 1–5 scale; threshold **3.0** follows common practice in the li
 
 ### 1.3 Objectives
 
-1. Reproduce a reproducible DREAMER → features → train → evaluate workflow in `EDA.ipynb`.
+1. Reproduce a reproducible DREAMER -> features -> train -> evaluate workflow in repository training scripts.
 2. Avoid **data leakage** by splitting trials, not sliding windows.
 3. Export deployable weights and a scaler fit **only on training data**.
 4. Expose inference via CLI and HTTP API for integration demos.
@@ -63,7 +63,7 @@ This is a **research / coursework prototype**, not a clinical or real-time BCI p
 | Sampling rate | 128 Hz |
 | Labels | Valence, arousal, dominance (1–5) |
 
-Raw data are loaded via `DREAMERDataset` with `DREAMER.mat` on the local machine (path configured in the notebook).
+Raw data are loaded via `DREAMERDataset` with `DREAMER.mat` on the local machine (path configured through CLI flags such as `--mat-path`).
 
 ### 2.2 Label distribution (trial level)
 
@@ -143,7 +143,7 @@ Approximate parameter count is on the order of hundreds of thousands (dominated 
 | Loss | Cross-entropy |
 | Device | CUDA when available |
 
-Training curves and confusion matrices are produced in notebook Section 7–8.
+Training curves and confusion matrices are produced by the scripted pipeline (`training/eda_bilstm_quadrant.py`) and saved in artifacts.
 
 ---
 
@@ -196,17 +196,20 @@ Given the weak performance of 4-class classification (~35% accuracy), the projec
 #### Motivation
 Binary classification is inherently easier than 4-way classification. By training separate classifiers for valence (low vs. high) and arousal (low vs. high), we can combine them to derive the quadrant label with improved accuracy.
 
-#### Binary Model Results (EEGNet on DREAMER, cross-subject split, test size 20%)
+#### Binary Model Results (EEGNet on DREAMER, seed-999 cross-trial run)
 
 | Task | Accuracy | Balanced Accuracy | Macro F1 |
 |------|----------|-------------------|----------|
-| **Valence** | **59.39%** | 48.94% | 0.4153 |
-| **Arousal** | **64.03%** | 52.90% | 0.5009 |
-| **Quadrant (mapped from binary)** | 34.82% | 24.68% | 0.1869 |
+| **Valence (window-level)** | **68.61%** | 53.38% | 0.5345 |
+| **Arousal (window-level)** | **57.17%** | 58.38% | 0.5534 |
+| **Valence (trial-level, vote)** | **75.00%** | - | - |
+| **Arousal (trial-level, vote)** | **61.96%** | - | - |
+| **Quadrant (trial-level, mapped from binary)** | 44.57% | - | - |
 
 **Observations:**
-- Individual binary tasks achieve **~60% and ~64% accuracy**, a **+20–30 percentage point improvement** over 4-class.
-- However, combining the two binary predictions back to quadrant labels still yields ~35% (same as direct 4-class), suggesting that **quadrant boundaries are coarse** and errors in valence or arousal propagate.
+- Binary tasks are clearly stronger than 4-class for single-dimension targets.
+- Trial-level aggregation improves stability and pushes valence to 75.00%.
+- Quadrant accuracy remains much lower than binary task accuracy, suggesting that **quadrant boundaries are coarse** and errors in valence/arousal still propagate.
 - Binary models (EEGNet) are simpler and potentially more interpretable for individual dimensions.
 - For practical use cases where only valence or arousal is needed (not quadrant), these binary models are significantly more reliable.
 
@@ -218,7 +221,7 @@ Binary classification is inherently easier than 4-way classification. By trainin
 
 ```
 project-root/
-├── EDA.ipynb              # Full experiment (9 sections)
+├── run.py                 # Launcher (`train`, `evaluate`, `eda`, etc.)
 ├── model.pth              # Trained BiLSTM weights
 ├── scaler.pkl             # StandardScaler (train-fit)
 ├── requirements.txt
@@ -281,24 +284,23 @@ Identical dummy inputs often yield the same label; that confirms the stack loads
 
 ### 5.5 Platform notes
 
-- **Windows + LMDB:** Concurrent notebook cache access and API/process access can lock LMDB; `torcheeg_patch.py` mitigates premature environment close.
+- **Windows + LMDB:** Concurrent cache access across processes can lock LMDB; `torcheeg_patch.py` mitigates premature environment close.
 - **Cache build:** One-time ~20–30 min for `c256_s128` at 23 subjects; set dataset `io_path` to cache dir afterward to skip reprocessing.
 
 ---
 
-## 6. Notebook structure (`EDA.ipynb`)
+## 6. EDA pipeline structure (`training/eda_bilstm_quadrant.py`)
 
-The notebook is organized for presentation and reproducibility:
+The scripted EDA/training workflow is organized for reproducibility:
 
-1. **Title and configuration** — goal, settings table, deployment pointers  
-2. **Imports and plotting setup**  
-3. **Load DREAMER** — cache, window counts, sample shapes  
-4. **Label distribution** — window and trial bar charts  
-5. **Model definition** — `EEGBiLSTMClassifier`  
-6. **Split, scaler, dataloaders** — trial split counts, `scaler.pkl`  
-7. **Training** — 10 epochs, history dict, learning curves  
-8. **Evaluation** — accuracy, balanced accuracy, F1, confusion matrices (counts + row-normalized)  
-9. **Save artifacts** — `model.pth`, deployment notes  
+1. **Configuration parsing** -> data path, split, model/training hyperparameters  
+2. **Load DREAMER** -> cache, window counts, sample feature shape  
+3. **EDA outputs** -> label distributions, valence/arousal histograms, scatter  
+4. **Model definition** ? `EEGBiLSTMClassifier`  
+5. **Split, scaler, dataloaders** -> trial split counts, train-only `scaler.pkl`  
+6. **Training loop** -> history tracking and best-model selection  
+7. **Evaluation** -> accuracy, balanced accuracy, F1, confusion matrices (counts + row-normalized)  
+8. **Save artifacts** -> `model.pth`, plots, and JSON reports  
 
 ---
 
@@ -364,7 +366,7 @@ The project is **suitable as a foundation** for coursework, demos, and iterative
 
 | Action | Command |
 |--------|---------|
-| Train / evaluate | Run all cells in `EDA.ipynb` |
+| EDA + 4-class train/evaluate | `python3 run.py eda --epochs 10 --output-dir artifacts/eda_quadrant` |
 | Start API | `uvicorn app:app --reload` |
 | CLI predict | `python predict.py --help` |
 | Health check | `GET /health` |

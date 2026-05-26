@@ -16,7 +16,8 @@ Methodologically, the work emphasizes data-leakage prevention through trial-safe
 
 **Performance Summary:**
 - **4-class quadrant model (BiLSTM):** ~34.6% validation accuracy—moderate and reflecting the known difficulty of EEG emotion classification and cross-subject variability.
-- **Binary models (EEGNet):** ~59% valence accuracy, ~64% arousal accuracy—significantly more reliable for individual emotional dimensions, though combining them back to quadrant maintains ~35% due to coarse boundary effects.
+- **Binary models (EEGNet, seed 999, cross-trial):** 68.61% valence accuracy and 57.17% arousal accuracy at window level.
+- **Trial-level aggregation (same model pair):** up to 75.00% valence and 61.96% arousal with trial window aggregation; quadrant from binary reaches 44.57%.
 
 The engineering pipeline is complete, reproducible, and suitable for academic demonstration and iterative research. Binary classification is presented as a practical alternative when individual valence or arousal prediction is more important than 4-way classification.
 

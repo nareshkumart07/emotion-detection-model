@@ -65,6 +65,7 @@ The repository is organized as a delivery-ready package for:
 - Cleaned project structure (removed heavy cache/artifact folders from delivery folder)
 - Added one-command launcher `run.py`:
   - `train`, `streamlit`, `api`, `evaluate`
+  - `evaluate-trial`, `evaluate-ensemble`, `experiments`, `eda`
 - Simplified docs for normal user execution
 
 ## 3) End-to-End Data and Prediction Flow
@@ -191,6 +192,10 @@ The API validates shapes before prediction and returns consistent response:
     - `streamlit`
     - `api`
     - `evaluate`
+    - `evaluate-trial`
+    - `evaluate-ensemble`
+    - `experiments`
+    - `eda`
   - normal users should prefer this file
 
 - `streamlit_app.py`
@@ -274,6 +279,22 @@ The API validates shapes before prediction and returns consistent response:
   - evaluates each binary task and mapped 4-class quadrant metrics
   - prints report JSON
 
+- `training/evaluate_binary_pair_trial.py`
+  - trial-aware evaluation with `vote` / `mean_prob` aggregation
+  - writes detailed window/trial metrics and confusion matrices
+
+- `training/evaluate_binary_pair_ensemble.py`
+  - evaluates top-k fold ensemble selected from fold reports
+  - supports multiple ranking metrics for fold selection
+
+- `training/run_binary_experiments.py`
+  - executes experiment plans from JSON
+  - builds comparable report/leaderboard outputs
+
+- `training/eda_bilstm_quadrant.py`
+  - productionized EDA + 4-class BiLSTM workflow
+  - exports label-distribution plots, learning curves, confusion matrices, model/scaler, and report JSON
+
 - `training/select_best_checkpoint.py`
   - reads report JSON
   - selects best fold by metric (`balanced_accuracy` default)
@@ -339,9 +360,11 @@ These can be generated again during local training runs.
 
 For reviewer/client demo sequence:
 
-1. `python run.py train`
-2. `python run.py evaluate`
-3. `python run.py streamlit`
-4. `python run.py api` and open `/docs`
+1. `python3 run.py train`
+2. `python3 run.py evaluate`
+3. `python3 run.py evaluate-trial` (optional trial-level aggregation metrics)
+4. `python3 run.py eda` (optional EDA + confusion matrix artifact generation)
+5. `python3 run.py streamlit`
+6. `python3 run.py api` and open `/docs`
 
 This sequence demonstrates training, metrics, interactive prediction, and deployable API.
