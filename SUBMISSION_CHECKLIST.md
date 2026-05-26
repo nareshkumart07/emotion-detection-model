@@ -215,16 +215,16 @@ emotion-detection-model/
 
 ## For Viva Examiners - Key Files They'll Check
 
-1. **[PRESENTATION_SCRIPT.md](docs/PRESENTATION_SCRIPT.md)** 
+1. **[PRESENTATION_SCRIPT.md](PRESENTATION_SCRIPT.md)** 
    - 8-10 min talk covering all aspects (INCLUDES BINARY CLASSIFICATION)
 
-2. **[VIVA_QUESTIONS.md](docs/VIVA_QUESTIONS.md)**
+2. **[VIVA_QUESTIONS.md](VIVA_QUESTIONS.md)**
    - Q&A prepared (INCLUDES BINARY CLASSIFICATION)
 
-3. **[BINARY_CLASSIFICATION_GUIDE.md](docs/BINARY_CLASSIFICATION_GUIDE.md)** ⭐ NEW
+3. **[BINARY_CLASSIFICATION_GUIDE.md](BINARY_CLASSIFICATION_GUIDE.md)** ⭐ NEW
    - Complete explanation with visuals and code
 
-4. **[PROJECT_REPORT.md](docs/PROJECT_REPORT.md)**
+4. **[PROJECT_REPORT.md](PROJECT_REPORT.md)**
    - Full technical report with results
 
 5. **Live Demo**
