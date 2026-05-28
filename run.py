@@ -4,11 +4,10 @@
 Use this file when you do not want to remember long commands.
 Examples:
   python run.py train
+  python run.py train-quadrant
   python run.py streamlit
   python run.py api
   python run.py evaluate
-  python run.py evaluate-trial
-  python run.py eda
 """
 
 from __future__ import annotations
@@ -60,6 +59,38 @@ def cmd_streamlit(_: argparse.Namespace) -> int:
     return _run(cmd)
 
 
+def cmd_train_quadrant(args: argparse.Namespace) -> int:
+    cmd = [
+        sys.executable,
+        str(ROOT / 'training' / 'train_quadrant_bilstm.py'),
+        '--mat-path',
+        args.mat_path,
+        '--split',
+        args.split,
+        '--test-size',
+        str(args.test_size),
+        '--epochs',
+        str(args.epochs),
+        '--batch-size',
+        str(args.batch_size),
+        '--lr',
+        str(args.lr),
+        '--weight-decay',
+        str(args.weight_decay),
+        '--hidden-size',
+        str(args.hidden_size),
+        '--num-layers',
+        str(args.num_layers),
+        '--dropout',
+        str(args.dropout),
+        '--device',
+        args.device,
+        '--output-dir',
+        args.output_dir,
+    ]
+    return _run(cmd)
+
+
 def cmd_api(args: argparse.Namespace) -> int:
     cmd = [
         sys.executable,
@@ -92,36 +123,6 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         '--mat-path',
         args.mat_path,
     ]
-    return _run(cmd)
-
-
-def cmd_evaluate_trial(args: argparse.Namespace) -> int:
-    cmd = [
-        sys.executable,
-        str(ROOT / 'training' / 'evaluate_binary_pair_trial.py'),
-        '--valence-model',
-        args.valence_model,
-        '--arousal-model',
-        args.arousal_model,
-        '--split',
-        args.split,
-        '--aggregation',
-        args.aggregation,
-        '--device',
-        args.device,
-        '--mat-path',
-        args.mat_path,
-        '--batch-size',
-        str(args.batch_size),
-        '--seed',
-        str(args.seed),
-    ]
-    if args.scaler:
-        cmd.extend(['--scaler', args.scaler])
-    if args.valence_scaler:
-        cmd.extend(['--valence-scaler', args.valence_scaler])
-    if args.arousal_scaler:
-        cmd.extend(['--arousal-scaler', args.arousal_scaler])
     if args.report_out:
         cmd.extend(['--report-out', args.report_out])
     return _run(cmd)
@@ -146,6 +147,8 @@ def cmd_evaluate_ensemble(args: argparse.Namespace) -> int:
         '--mat-path',
         args.mat_path,
     ]
+    if args.report_out:
+        cmd.extend(['--report-out', args.report_out])
     return _run(cmd)
 
 
@@ -165,40 +168,6 @@ def cmd_experiments(args: argparse.Namespace) -> int:
         str(args.ensemble_top_k),
         '--report-out',
         args.report_out,
-    ]
-    return _run(cmd)
-
-
-def cmd_eda(args: argparse.Namespace) -> int:
-    cmd = [
-        sys.executable,
-        str(ROOT / 'training' / 'eda_bilstm_quadrant.py'),
-        '--mat-path',
-        args.mat_path,
-        '--chunk-size',
-        str(args.chunk_size),
-        '--step-size',
-        str(args.step_size),
-        '--test-size',
-        str(args.test_size),
-        '--seed',
-        str(args.seed),
-        '--epochs',
-        str(args.epochs),
-        '--batch-size',
-        str(args.batch_size),
-        '--lr',
-        str(args.lr),
-        '--hidden-size',
-        str(args.hidden_size),
-        '--num-layers',
-        str(args.num_layers),
-        '--dropout',
-        str(args.dropout),
-        '--device',
-        args.device,
-        '--output-dir',
-        args.output_dir,
     ]
     return _run(cmd)
 
@@ -230,6 +199,25 @@ def build_parser() -> argparse.ArgumentParser:
     p_train.add_argument('--max-folds', type=int, default=0)
     p_train.set_defaults(func=cmd_train)
 
+    p_quad = sub.add_parser(
+        'train-quadrant', help='Train 4-class quadrant BiLSTM model'
+    )
+    p_quad.add_argument('--mat-path', default='DREAMER.mat')
+    p_quad.add_argument(
+        '--split', choices=['cross_trial', 'cross_subject'], default='cross_trial'
+    )
+    p_quad.add_argument('--test-size', type=float, default=0.2)
+    p_quad.add_argument('--epochs', type=int, default=10)
+    p_quad.add_argument('--batch-size', type=int, default=64)
+    p_quad.add_argument('--lr', type=float, default=5e-4)
+    p_quad.add_argument('--weight-decay', type=float, default=0.0)
+    p_quad.add_argument('--hidden-size', type=int, default=128)
+    p_quad.add_argument('--num-layers', type=int, default=2)
+    p_quad.add_argument('--dropout', type=float, default=0.5)
+    p_quad.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
+    p_quad.add_argument('--output-dir', default='models/quadrant')
+    p_quad.set_defaults(func=cmd_train_quadrant)
+
     p_streamlit = sub.add_parser('streamlit', help='Run Streamlit dashboard')
     p_streamlit.set_defaults(func=cmd_streamlit)
 
@@ -245,41 +233,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument('--split', choices=['cross_subject', 'cross_trial'], default='cross_subject')
     p_eval.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
     p_eval.add_argument('--mat-path', default='DREAMER.mat')
+    p_eval.add_argument('--report-out', default='')
     p_eval.set_defaults(func=cmd_evaluate)
-
-    p_eval_trial = sub.add_parser(
-        'evaluate-trial',
-        help='Evaluate model pair at window and trial levels (vote/mean_prob)',
-    )
-    p_eval_trial.add_argument('--valence-model', required=True)
-    p_eval_trial.add_argument('--arousal-model', required=True)
-    p_eval_trial.add_argument(
-        '--scaler',
-        default=None,
-        help='Single scaler used for both tasks (optional).',
-    )
-    p_eval_trial.add_argument(
-        '--valence-scaler',
-        default=None,
-        help='Valence-specific scaler (optional if --scaler is used).',
-    )
-    p_eval_trial.add_argument(
-        '--arousal-scaler',
-        default=None,
-        help='Arousal-specific scaler (optional if --scaler is used).',
-    )
-    p_eval_trial.add_argument(
-        '--aggregation',
-        choices=['vote', 'mean_prob'],
-        default='mean_prob',
-    )
-    p_eval_trial.add_argument('--split', choices=['cross_subject', 'cross_trial'], default='cross_trial')
-    p_eval_trial.add_argument('--seed', type=int, default=42)
-    p_eval_trial.add_argument('--batch-size', type=int, default=128)
-    p_eval_trial.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
-    p_eval_trial.add_argument('--mat-path', default='DREAMER.mat')
-    p_eval_trial.add_argument('--report-out', default=None)
-    p_eval_trial.set_defaults(func=cmd_evaluate_trial)
 
     p_eval_ens = sub.add_parser(
         'evaluate-ensemble',
@@ -306,6 +261,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_eval_ens.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
     p_eval_ens.add_argument('--mat-path', default='DREAMER.mat')
+    p_eval_ens.add_argument('--report-out', default='')
     p_eval_ens.set_defaults(func=cmd_evaluate_ensemble)
 
     p_exp = sub.add_parser(
@@ -323,25 +279,6 @@ def build_parser() -> argparse.ArgumentParser:
     p_exp.add_argument('--ensemble-top-k', type=int, default=3)
     p_exp.add_argument('--report-out', default='artifacts/experiment_leaderboard.json')
     p_exp.set_defaults(func=cmd_experiments)
-
-    p_eda = sub.add_parser(
-        'eda',
-        help='Run EDA + BiLSTM training + confusion-matrix report for 4-class quadrant task',
-    )
-    p_eda.add_argument('--mat-path', default='DREAMER.mat')
-    p_eda.add_argument('--chunk-size', type=int, default=256)
-    p_eda.add_argument('--step-size', type=int, default=128)
-    p_eda.add_argument('--test-size', type=float, default=0.2)
-    p_eda.add_argument('--seed', type=int, default=42)
-    p_eda.add_argument('--epochs', type=int, default=10)
-    p_eda.add_argument('--batch-size', type=int, default=64)
-    p_eda.add_argument('--lr', type=float, default=5e-4)
-    p_eda.add_argument('--hidden-size', type=int, default=128)
-    p_eda.add_argument('--num-layers', type=int, default=2)
-    p_eda.add_argument('--dropout', type=float, default=0.5)
-    p_eda.add_argument('--device', choices=['auto', 'cpu', 'cuda'], default='auto')
-    p_eda.add_argument('--output-dir', default='artifacts/eda_quadrant')
-    p_eda.set_defaults(func=cmd_eda)
 
     return parser
 
