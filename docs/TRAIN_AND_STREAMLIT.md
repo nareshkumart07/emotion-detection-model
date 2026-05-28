@@ -11,7 +11,7 @@ If you run commands from another folder, you may get file path errors.
 ## 2) Install dependencies
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## 3) Train the model
@@ -19,7 +19,7 @@ pip install -r requirements.txt
 Default training:
 
 ```bash
-python3 run.py train
+python run.py train
 ```
 
 Default training does this:
@@ -30,38 +30,35 @@ Default training does this:
 - uses the `balanced` preset
 - uses `auto` device selection
 
+Train notebook-equivalent 4-class BiLSTM quadrant model:
+
+```bash
+python run.py train-quadrant
+```
+
+This writes:
+- `models/quadrant/model.pth`
+- `models/quadrant/scaler.pkl`
+- `models/quadrant/metrics.json`
+- `models/quadrant/learning_curves.png`
+- `models/quadrant/confusion_matrix.png`
+
 Fast test run:
 
 ```bash
-python3 run.py train --max-folds 1 --epochs 1
+python run.py train --max-folds 1 --epochs 1
 ```
 
 Custom training example:
 
 ```bash
-python3 run.py train --task valence --preset robust --epochs 25
-```
-
-Reproducible seed-999 run used in final report:
-
-```bash
-python3 training/train_eegnet_binary.py \
-  --task valence --split cross_trial --epochs 80 --batch-size 64 \
-  --preset custom --loss cross_entropy --no-class-weights \
-  --lr 1e-3 --weight-decay 1e-4 --patience 12 \
-  --seed 999 --output-dir artifacts/acc_valence_s999
-
-python3 training/train_eegnet_binary.py \
-  --task arousal --split cross_trial --epochs 80 --batch-size 64 \
-  --preset custom --loss cross_entropy --no-class-weights \
-  --lr 1e-3 --weight-decay 1e-4 --patience 12 \
-  --seed 999 --output-dir artifacts/acc_arousal_s999
+python run.py train --task valence --preset robust --epochs 25
 ```
 
 ## 4) Run the Streamlit dashboard
 
 ```bash
-python3 run.py streamlit
+python run.py streamlit
 ```
 
 In the dashboard:
@@ -72,7 +69,7 @@ In the dashboard:
 ## 5) Run the API
 
 ```bash
-python3 run.py api
+python run.py api
 ```
 
 API docs:
@@ -81,59 +78,41 @@ API docs:
 ## 6) Evaluate a trained pair
 
 ```bash
-python3 run.py evaluate
+python run.py evaluate
+```
+
+Save a JSON report with confusion matrices:
+
+```bash
+python run.py evaluate --report-out artifacts/eval_binary_pair.json
 ```
 
 For higher scoring potential, evaluate fold ensemble:
 
 ```bash
-python3 run.py evaluate-ensemble --top-k 3 --split cross_subject
+python run.py evaluate-ensemble --top-k 3 --split cross_subject
 ```
 
-Trial-level evaluation:
+Save ensemble report with confusion matrices:
 
 ```bash
-python3 run.py evaluate-trial \
-  --valence-model artifacts/acc_valence_s999/valence/cross_trial/eegnet_valence_best.pth \
-  --arousal-model artifacts/acc_arousal_s999/arousal/cross_trial/eegnet_arousal_best.pth \
-  --valence-scaler artifacts/acc_valence_s999/valence/cross_trial/valence_scaler.pkl \
-  --arousal-scaler artifacts/acc_arousal_s999/arousal/cross_trial/arousal_scaler.pkl \
-  --split cross_trial \
-  --aggregation vote \
-  --report-out artifacts/trial_eval_seed999_vote.json
+python run.py evaluate-ensemble --top-k 3 --split cross_subject --report-out artifacts/eval_binary_ensemble.json
 ```
 
 ## 7) Run multi-experiment search
 
 ```bash
-python3 run.py experiments --plan training/experiments_plan.json --eval-split cross_subject
+python run.py experiments --plan training/experiments_plan.json --eval-split cross_subject
 ```
 
 This produces a ranked report at:
 - `artifacts/experiment_leaderboard.json`
 
-## 8) Run EDA + confusion matrix pipeline
-
-```bash
-python3 run.py eda --epochs 10 --output-dir artifacts/eda_quadrant
-```
-
-This produces:
-- `artifacts/eda_quadrant/eda_summary.json`
-- `artifacts/eda_quadrant/eda_report.json`
-- `artifacts/eda_quadrant/model.pth`
-- `artifacts/eda_quadrant/scaler.pkl`
-- `artifacts/eda_quadrant/plots/eda_label_distribution.png`
-- `artifacts/eda_quadrant/plots/eda_valence_arousal_hist.png`
-- `artifacts/eda_quadrant/plots/eda_valence_arousal_scatter.png`
-- `artifacts/eda_quadrant/plots/learning_curves.png`
-- `artifacts/eda_quadrant/plots/confusion_matrices.png`
-
-## 9) Common errors
+## 8) Common errors
 
 - `DREAMER.mat not found`
   - Put `DREAMER.mat` in the project root folder
-  - or pass `python3 run.py train --mat-path /full/path/to/DREAMER.mat`
+  - or pass `python run.py train --mat-path /full/path/to/DREAMER.mat`
 
 - `can't open file ... training/train_eegnet_binary.py`
   - You are in the wrong folder
